@@ -185,18 +185,13 @@ class SyclCollector {
     SPDLOG_TRACE("{}: TraceType: {}", Time, GetTracePointTypeString(trace_type));
     SPDLOG_TRACE(" Event_id: {}, Instance_id: {}, pid: {}, tid: {} name: {}", ID, Instance_ID, pid,
                  tid, Name.c_str());
-
+    if (!SyclCollector::Instance().enabled_) {
+      SyclCollector::Instance().DisableTracing();
+    }
     switch (trace_type) {
       case xpti::trace_point_type_t::function_begin:
-        // Until the user calls EnableTracing(), disable tracing when we are
-        // able to capture the sycl runtime streams sycl and sycl.pi
-        // Empirically, we found the sycl.pi stream gets emitted after the sycl
-        // stream.
         if (!SyclCollector::Instance().sycl_pi_graph_created_) {
           SyclCollector::Instance().sycl_pi_graph_created_ = true;
-          if (!SyclCollector::Instance().enabled_) {
-            SyclCollector::Instance().DisableTracing();
-          }
         }
         sycl_data_kview.cid_ = UniCorrId::GetUniCorrId();
         sycl_data_mview.cid_ = sycl_data_kview.cid_;
